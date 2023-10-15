@@ -1,5 +1,7 @@
 import { useState } from "react";
-import neo4j from "neo4j-driver";
+// import neo4j from "neo4j-driver";
+import useSWR from "swr";
+// import { startServer } from "../server/server";
 import ForceGraph2D from "react-force-graph-2d";
 export default function Home() {
   const [address, setAddress] = useState("");
@@ -9,13 +11,29 @@ export default function Home() {
   const resultArray = [];
   const nodes = [];
   const links = [];
+  // const url = "http://localhost:8000/query"
+  // const fetcher = (url)=>fetch(url).then((res)=>res.json())
+  // const {session,error,isLoading} = useSWR(url,fetcher);
   const HandleReturn = async () =>{
-    const driver = await neo4j.driver("bolt://localhost:7687", neo4j.auth.basic('neo4j', '12345678'));
-    const session = await driver.session();
+    const res = await fetch('/query', {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
+    const session = await res.json();
+    console.log(session)
+    // // const resp = await res.json();
+      // console.log(res);
+      // const driver =  await neo4j.driver("bolt://localhost:7687", neo4j.auth.basic('neo4j', '12345678'));
+    //     const session = await driver.session();
+    // const data1 = await res.json();
+    // const session = data1.session;
     // Address id should return a single id of the node instead, an object returned.
 // The issue is with the neo4j query in javascript
 // After getting the id, you just have to place it in the next query with the 'where' keyword.
-const data = await session.run(`match (n)-[t:Transaction]-(m) where n.addressId='${address}' return (n),(t),(m) limit 5`);
+const data = await session.run(`match (n)-[t:Transaction]-(m) where n.addressId='${address}' return (n),(t),(m)`);
 console.log(data);
 // Iterate over the records in the data
 data.records.forEach(record => {
@@ -57,6 +75,7 @@ const CallPrev = async () =>{
   setIndex(index-1);
   await HandleReturn()
 }
+
   return (
     <>
       <div className="grid justify-center">
